@@ -35,6 +35,8 @@ visionConfig = {
 }
 
 elevatorConfig = {
+    "LEFT_MOTOR_ID": 1,
+    "RIGHT_MOTOR_ID": 2,
 
 }
 
@@ -59,4 +61,6 @@ dashboardConfig = {
 
 robotconfig = {
     "CONTROLLERS": controllerConfig,
+    "ELEVATOR": elevatorConfig,
 }
+

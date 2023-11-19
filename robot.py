@@ -15,6 +15,7 @@ from networktables import NetworkTables
 
 from robotconfig import robotconfig, MODULE_NAMES
 from controller import Controller
+from elevator import Elevator
 """
 from swervedrive import SwerveDrive
 from swervemodule import SwerveModule
@@ -44,6 +45,7 @@ class MyRobot(wpilib.TimedRobot):
         controllers = self.initControllers(robotconfig["CONTROLLERS"])
         self.driver = controllers[0]
         self.operator = controllers[1]
+        self.elevator = Elevator(robotconfig["ELEVATOR"])
         return
     
     def initLogger(self, dir):
@@ -60,6 +62,7 @@ class MyRobot(wpilib.TimedRobot):
             lta = ctrlConfig['LEFT_TRIGGER_AXIS']
             rta = ctrlConfig['RIGHT_TRIGGER_AXIS']
             ctrls.append(Controller(ctrl, dz, lta, rta))
+
         return ctrls
     
     def initVision(self, config):
