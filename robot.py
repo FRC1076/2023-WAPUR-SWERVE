@@ -77,7 +77,7 @@ class MyRobot(wpilib.TimedRobot):
     def initAuton(self, config):
         return
     
-    def initTeleop(self):
+    def teleopInit(self):
         return
 
     def robotPeriodic(self):
