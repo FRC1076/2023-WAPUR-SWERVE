@@ -14,6 +14,10 @@ class Elevator:
         self.kP = config["kP"]
         self.kI = config["kI"]
         self.kD = config["kD"]
+        self.heightA = config["heightA"]
+        self.heightB = config["heightB"]
+        self.heightC = config["heightC"]
+        self.heightD = config["heightD"]
         self.logger = Logger.getLogger()
         motor_type = rev.CANSparkMaxLowLevel.MotorType.kBrushless
         self.right_motor = rev.CANSparkMax(config["RIGHT_MOTOR_ID"], motor_type) # elevator up-down
@@ -26,25 +30,27 @@ class Elevator:
 
     def setHeight(self,height):
         #4 different heights for shelves, change values to actual shelf measurements
-        rackOne = 0
-        rackTwo = 0
-        rackThree = 0
-        rackFour = 0
+        self.heightA = 0
+        self.heightB = 0
+        self.heightC = 0
+        self.heightD = 0
 
-        #get button input and select specific shelf height
-        if buttonInput()=="X":
-            self.height = rackOne
-        elif buttonInput()=="Y":
-            self.height = rackTwo
-        elif buttonInput()=="A":
-            self.height = rackThree
-        elif buttonInput()=="B":
-            self.height = rackFour
-        return self.height
+        #get button input and select specific shelf height (need global command for button input)
+        buttons = {
+            "X": self.heightA, 
+            "Y": self.heightB, 
+            "A": self.heightC, 
+            "B": self.heightD,
+            }
+        user_input = "X" #buttonInput()
+        if user_input in buttons:
+            self.targetPosition = buttons[user_input]
+
+        return self.targetPosition
 
     def update(self):
         self.moveToPos(self.targetPosition)
-        return
+        return 
     
     def extend(self, targetSpeed):  # controls length of the elevator 
             
