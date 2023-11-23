@@ -15,6 +15,7 @@ from networktables import NetworkTables
 
 from robotconfig import robotconfig, MODULE_NAMES
 from controller import Controller
+from swervedrive import SwerveDrive
 """
 from swervedrive import SwerveDrive
 from swervemodule import SwerveModule
@@ -41,10 +42,12 @@ from tester import Tester
 class MyRobot(wpilib.TimedRobot):
 
     def robotInit(self):
+
         controllers = self.initControllers(robotconfig["CONTROLLERS"])
         self.driver = controllers[0]
         self.operator = controllers[1]
-        return
+
+        self.drivetrain = self.initDrivetrain(robotconfig["DRIVETRAIN"])
     
     def initLogger(self, dir):
         return #Logger.getLogger(dir)
@@ -72,7 +75,7 @@ class MyRobot(wpilib.TimedRobot):
         return
     
     def initDrivetrain(self, config):
-        return
+        return SwerveDrive(config)
     
     def initAuton(self, config):
         return

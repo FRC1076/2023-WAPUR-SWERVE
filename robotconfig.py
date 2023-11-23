@@ -27,7 +27,18 @@ swervometerConfig = {
 }
 
 drivetrainConfig = {
+    "FRONT_LEFT_MODULE": {
+        
+    },
+    "FRONT_RIGHT_MODULE": {
 
+    },
+    "REAR_LEFT_MODULE": {
+
+    },
+    "REAR_RIGHT_MODULE": {
+
+    },
 }
 
 visionConfig = {
@@ -59,4 +70,5 @@ dashboardConfig = {
 
 robotconfig = {
     "CONTROLLERS": controllerConfig,
+    "DRIVETRAIN": drivetrainConfig,
 }
