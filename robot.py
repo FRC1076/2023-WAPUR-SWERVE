@@ -75,7 +75,8 @@ class MyRobot(wpilib.TimedRobot):
         return
     
     def initDrivetrain(self, config):
-        return SwerveDrive(config)
+        gyro = AHRS.create_spi(wpilib._wpilib.SPI.Port.kMXP, 500000, 50)
+        return SwerveDrive(config, gyro)
     
     def initAuton(self, config):
         return
@@ -90,7 +91,17 @@ class MyRobot(wpilib.TimedRobot):
         return
     
     def teleopDrivetrain(self):
+        fwd = self.deadzoneCorrection(self.driver.getLeftY(), self.driver.deadzone)
+        strafe = self.deadzoneCorrection(self.driver.getLeftX(), self.driver.deadzone)
+        rcw = self.deadzoneCorrection(self.driver.getRightX(), self.driver.deadzone)
+
+
+        
+        self.drivetrain.move(fwd, strafe, rcw, self.drivetrain.getBearing())
+        self.drivetrain.execute()
+        
         return
+        
     
     def teleopElevatorGrabber(self):
         return
@@ -105,7 +116,20 @@ class MyRobot(wpilib.TimedRobot):
         return
     
     def deadzoneCorrection(self, val, deadzone):
-        return
+        """
+        Given the deadzone value x, the deadzone both eliminates all
+        values between -x and x, and scales the remaining values from
+        -1 to 1, to (-1 + x) to (1 - x)
+        """
+        if abs(val) < deadzone:
+            return 0
+        elif val < 0:
+            x = (abs(val) - deadzone) / (1 - deadzone)
+            return -x
+        else:
+            x = (val - deadzone) / (1 - deadzone)
+            return x
+
 
     def log(self, *dataToLog):
         return
