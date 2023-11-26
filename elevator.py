@@ -63,7 +63,17 @@ class Elevator:
             targetSpeed *= 0.5
 
         return targetSpeed
-    
+    def moveToHeight(self, shelfLabel):
+        targetHeight = 0
+        if shelfLabel == "A":
+            targetHeight = self.shelfHeightA
+        elif shelfLabel == "B":
+             targetHeight = self.shelfHeightB
+        elif shelfLabel == "C":
+             targetHeight = self.shelfHeightC
+        else:
+            targetHeight = self.shelfHeightD  
+
     def manualRaise(self):
         self.right_motor.set(1)
         self.left_motor.set(1)
