@@ -37,6 +37,10 @@ visionConfig = {
 elevatorConfig = {
     "LEFT_MOTOR_ID": 1,
     "RIGHT_MOTOR_ID": 2,
+    "SHELF_HEIGHT_A": 4, # Lowest, in inches
+    "SHELF_HEIGHT_B": 18,
+    "SHELF_HEIGHT_C": 32,
+    "SHELF_HEIGHT_D": 46,
 
 }
 

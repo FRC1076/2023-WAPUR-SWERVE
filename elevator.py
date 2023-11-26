@@ -14,10 +14,10 @@ class Elevator:
         self.kP = config["kP"]
         self.kI = config["kI"]
         self.kD = config["kD"]
-        self.heightA = config["heightA"]
-        self.heightB = config["heightB"]
-        self.heightC = config["heightC"]
-        self.heightD = config["heightD"]
+        self.shelfHeightA = config["SHELF_HEIGHT_A"] # Lowest shelf
+        self.shelfHeightB = config["SHELF_HEIGHT_B"]
+        self.shelfHeightC = config["SHELF_HEIGHT_C"]
+        self.shelfHeightD = config["SHELF_HEIGHT_D"]
         self.logger = Logger.getLogger()
         motor_type = rev.CANSparkMaxLowLevel.MotorType.kBrushless
         self.right_motor = rev.CANSparkMax(config["RIGHT_MOTOR_ID"], motor_type) # elevator up-down
@@ -30,10 +30,10 @@ class Elevator:
 
     def setHeight(self,height):
         #4 different heights for shelves, change values to actual shelf measurements
-        self.heightA = 0
-        self.heightB = 0
-        self.heightC = 0
-        self.heightD = 0
+        self.heightA = 4
+        self.heightB = 18
+        self.heightC = 32
+        self.heightD = 46
 
         #get button input and select specific shelf height (need global command for button input)
         buttons = {
