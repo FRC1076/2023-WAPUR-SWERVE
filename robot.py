@@ -11,7 +11,6 @@ from wpilib import interfaces
 import rev
 import ctre
 from navx import AHRS
-from networktables import NetworkTables
 
 from robotconfig import robotconfig, MODULE_NAMES
 from controller import Controller
