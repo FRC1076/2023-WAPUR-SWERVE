@@ -67,12 +67,6 @@ class MyRobot(wpilib.TimedRobot):
     def initVision(self, config):
         return
     
-    def initElevator(self, config):
-        return
-    
-    def initGrabber(self, config):
-        return
-    
     def initDrivetrain(self, config):
         return
     
@@ -86,6 +80,14 @@ class MyRobot(wpilib.TimedRobot):
         return True
     
     def teleopPeriodic(self):
+        #Find the value the arm will move at
+        #elevator_controller_value = (self.deadzoneCorrection(operator.getLeftY(), self.operator.deadzone) / 5) * operator_clutch
+        #grabber_controller_value = (self.deadzoneCorrection(operator.getRightY(), self.operator.deadzone)) * operator_clutch
+        y = self.operator.xboxController.getLeftY()
+        if y==1:
+            self.elevator.manualLower()
+        elif y==-1:
+            self.elevator.manualRaise()
         return
     
     def teleopDrivetrain(self):

@@ -50,13 +50,15 @@ class Elevator:
             targetHeight = self.shelfHeightD  
 
     def manualRaise(self):
-        self.right_motor.set(1)
-        self.left_motor.set(1)
+        #self.right_motor.set(1)
+        #self.left_motor.set(1)
+        print("manual Raise")
         return
     
     def manualLower(self):
-        self.right_motor.set(-1)
-        self.left_motor.set(-1)
+        #self.right_motor.set(-1)
+        #self.left_motor.set(-1)
+        print("manual Lower")
         return
     
     # Move elevator and reset target to where you end up.
