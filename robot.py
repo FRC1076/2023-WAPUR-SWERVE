@@ -88,8 +88,22 @@ class MyRobot(wpilib.TimedRobot):
             self.elevator.manualLower()
         elif y==-1:
             self.elevator.manualRaise()
+        
+        if self.operator.xboxController.getAButtonPressed():
+            self.elevator.moveToHeight("A")
+        elif self.operator.xboxController.getBButtonPressed():
+            self.elevator.moveToHeight("B")
+        elif self.operator.xboxController.getXButtonPressed():
+            self.elevator.moveToHeight("C")
+        elif self.operator.xboxController.getYButtonPressed():
+            self.elevator.moveToHeight("D")
+
+
+
+
         return
-    
+
+
     def teleopDrivetrain(self):
         return
     

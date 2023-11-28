@@ -38,27 +38,32 @@ class Elevator:
             targetSpeed *= 0.5
 
         return targetSpeed
+    
     def moveToHeight(self, shelfLabel):
         targetHeight = 0
         if shelfLabel == "A":
             targetHeight = self.shelfHeightA
+            print(f"shelf-A [{targetHeight}]")
         elif shelfLabel == "B":
              targetHeight = self.shelfHeightB
+             print(f"shelf-B [{targetHeight}]")
         elif shelfLabel == "C":
              targetHeight = self.shelfHeightC
+             print(f"shelf-C [{targetHeight}]")
         else:
             targetHeight = self.shelfHeightD  
+            print(f"shelf-D [{targetHeight}]")
 
     def manualRaise(self):
         self.rightMotor.set(1)
         self.leftMotor.set(1)
-        print(f"Raisingelevator [{self.getEncoderPosition()}]")
+        #print(f"Raisingelevator [{self.getEncoderPosition()}]")
         return
     
     def manualLower(self):
         self.rightMotor.set(-1)
         self.leftMotor.set(-1)
-        print(f"Lowering elevator [{self.getEncoderPosition()}]")
+        #print(f"Lowering elevator [{self.getEncoderPosition()}]")
         
         return
     
