@@ -84,11 +84,9 @@ class MyRobot(wpilib.TimedRobot):
         #elevator_controller_value = (self.deadzoneCorrection(operator.getLeftY(), self.operator.deadzone) / 5) * operator_clutch
         #grabber_controller_value = (self.deadzoneCorrection(operator.getRightY(), self.operator.deadzone)) * operator_clutch
         y = self.operator.xboxController.getLeftY()
-        if y==1:
-            self.elevator.manualLower()
-        elif y==-1:
-            self.elevator.manualRaise()
-        
+        adjustedY = self.deadzoneCorrection(y, self.operator.deadzone)
+        self.elevator.extend(adjustedY)
+
         if self.operator.xboxController.getAButtonPressed():
             self.elevator.moveToHeight("A")
         elif self.operator.xboxController.getBButtonPressed():
@@ -97,9 +95,6 @@ class MyRobot(wpilib.TimedRobot):
             self.elevator.moveToHeight("C")
         elif self.operator.xboxController.getYButtonPressed():
             self.elevator.moveToHeight("D")
-
-
-
 
         return
 
@@ -120,7 +115,19 @@ class MyRobot(wpilib.TimedRobot):
         return
     
     def deadzoneCorrection(self, val, deadzone):
-        return
+        """
+        Given the deadzone value x, the deadzone both eliminates all
+        values between -x and x, and scales the remaining values from
+        -1 to 1, to (-1 + x) to (1 - x)
+        """
+        if abs(val) < deadzone:
+            return 0
+        elif val < 0:
+            x = (abs(val) - deadzone) / (1 - deadzone)
+            return -x
+        else:
+            x = (val - deadzone) / (1 - deadzone)
+            return x
 
     def log(self, *dataToLog):
         return
