@@ -17,6 +17,10 @@ class Elevator:
         self.shelfHeightB = config["SHELF_HEIGHT_B"]
         self.shelfHeightC = config["SHELF_HEIGHT_C"]
         self.shelfHeightD = config["SHELF_HEIGHT_D"]
+        self.lowerSafety = config['LOWER_SAFETY']
+        self.upperSafety = config['UPPER_SAFETY']
+
+        
         #self.logger = Logger.getLogger()
         motorType = rev.CANSparkMaxLowLevel.MotorType.kBrushless
         self.rightMotor = rev.CANSparkMax(config["RIGHT_MOTOR_ID"], motorType) # elevator up-down
@@ -33,11 +37,23 @@ class Elevator:
             targetSpeed = 1
         if targetSpeed < -1:
             targetSpeed = -1
-        
-        if targetSpeed > 0:
-            targetSpeed *= 0.5
 
-        return targetSpeed
+
+        #make sure arm doesn't go past limit
+        if self.getEncoderPosition() > self.upperSafety and targetSpeed < 0:
+            self.rightMotor.set(0)
+            self.leftMotor.set(0)
+            return
+        if self.getEncoderPosition() < self.lowerSafety and targetSpeed > 0:
+            self.rightMotor.set(0)
+            self.leftMotor.set(0)
+            return
+        
+        # the motors are running backwards, invert targetSpeed.
+        self.rightMotor.set(-targetSpeed)
+        self.leftMotor.set(-targetSpeed)
+
+        return
     
     def moveToHeight(self, shelfLabel):
         targetHeight = 0
@@ -54,18 +70,8 @@ class Elevator:
             targetHeight = self.shelfHeightD  
             print(f"shelf-D [{targetHeight}]")
 
-    def manualRaise(self):
-        self.rightMotor.set(1)
-        self.leftMotor.set(1)
-        #print(f"Raisingelevator [{self.getEncoderPosition()}]")
-        return
-    
-    def manualLower(self):
-        self.rightMotor.set(-1)
-        self.leftMotor.set(-1)
-        #print(f"Lowering elevator [{self.getEncoderPosition()}]")
-        
-        return
+
+
     
     # Move elevator and reset target to where you end up.
     def move(self, targetSpeed):
