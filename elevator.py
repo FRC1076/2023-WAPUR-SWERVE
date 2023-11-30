@@ -1,7 +1,7 @@
 import wpilib
 import wpilib.drive
 import wpimath.controller
-
+from wpimath.controller import PIDController
 import rev
 
 
@@ -19,12 +19,17 @@ class Elevator:
         self.shelfHeightD = config["SHELF_HEIGHT_D"]
         self.lowerSafety = config['LOWER_SAFETY']
         self.upperSafety = config['UPPER_SAFETY']
-
+        kP = config['KP'] 
+        kI = config['KI']
+        kD = config['KD']
         
         #self.logger = Logger.getLogger()
         motorType = rev.CANSparkMaxLowLevel.MotorType.kBrushless
         self.rightMotor = rev.CANSparkMax(config["RIGHT_MOTOR_ID"], motorType) # elevator up-down
         self.leftMotor = rev.CANSparkMax(config["LEFT_MOTOR_ID"], motorType) # elevator up-down
+
+        self.pidController = PIDController(kP, kI, kD)
+        self.pidController.setTolerance(0.3, 0.01)
 
         self.rightEncoder = self.rightMotor.getEncoder() # measure elevator height
         self.leftEncoder = self.leftMotor.getEncoder() # ""
@@ -37,7 +42,6 @@ class Elevator:
             targetSpeed = 1
         if targetSpeed < -1:
             targetSpeed = -1
-
 
         #make sure arm doesn't go past limit
         if self.getEncoderPosition() > self.upperSafety and targetSpeed < 0:
@@ -70,8 +74,10 @@ class Elevator:
             targetHeight = self.shelfHeightD  
             print(f"shelf-D [{targetHeight}]")
 
-
-
+        extendSpeed = self.pidController.calculate(self.getEncoderPosition(), targetHeight)
+        print("Elevator: moveToPos: ", self.pidController.getSetpoint(), " actual position: ", self.getEncoderPosition())
+        
+        self.extend(extendSpeed)
     
     # Move elevator and reset target to where you end up.
     def move(self, targetSpeed):

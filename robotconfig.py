@@ -43,6 +43,9 @@ elevatorConfig = {
     "SHELF_HEIGHT_D": 46,
     'LOWER_SAFETY': 1,
     'UPPER_SAFETY': 33,
+    "KP": 0.2, 
+    "KI": 1.0,
+    "KD": 0,
 }
 
 grabberConfig = {
