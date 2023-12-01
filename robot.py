@@ -88,17 +88,20 @@ class MyRobot(wpilib.TimedRobot):
         return True
     
     def teleopPeriodic(self):
+        self.teleopDrivetrain()
         return
     
     def teleopDrivetrain(self):
+
+        #Get the joystick inputs for swerve
         fwd = self.deadzoneCorrection(self.driver.getLeftY(), self.driver.deadzone)
         strafe = self.deadzoneCorrection(self.driver.getLeftX(), self.driver.deadzone)
         rcw = self.deadzoneCorrection(self.driver.getRightX(), self.driver.deadzone)
 
-
-        
+        #Call move, which will move the swerve drive
         self.drivetrain.move(fwd, strafe, rcw, self.drivetrain.getBearing())
-        self.drivetrain.execute()
+        #move will automatically call execute
+        #self.drivetrain.execute()
         
         return
         

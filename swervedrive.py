@@ -1,25 +1,48 @@
 from swervemodule import SwerveModule
 import math
+from wpimath.controller import PIDController
 from util import clamp
 
 
 class SwerveDrive:
 
-    def __init__(self,  config, gyro):
+    def __init__(self, config, gyro):
 
         self.frontLeftModule = SwerveModule(config["FRONT_LEFT_MODULE"])
         self.frontRightModule = SwerveModule(config["FRONT_RIGHT_MODULE"])
         self.rearLeftModule = SwerveModule(config["REAR_LEFT_MODULE"])
         self.realRightModule = SwerveModule(config["REAR_RIGHT_MODULE"])
+        self.modules = {
+            'front_left': self.frontLeftModule,
+            'front_right': self.frontRightModule,
+            'rear_left': self.rearLeftModule,
+            'rear_right': self.rearRightModule
+        }
 
         self.gyro = gyro
-        self.gyroAngleZero = 0.0
+        self.gyroAngleZero = 0.0 #Not sure why we need this, but keep this for right now it was in last year's code
         self.bearing = self.getGyroAngle()
+        self.updateBearing = False
+        self.bearingPIDController = PIDController(self.config["BEARING_kP"], self.config["BEARING_kI"], self.config["BEARING_kD"])
 
         self.requestedVectors = {
             'fwd': 0,
             'strafe': 0,
             'rcw': 0
+        }
+
+        self.requestedSpeeds = {
+            'front_left': 0,
+            'front_right': 0,
+            'rear_left': 0,
+            'rear_right': 0
+        }
+
+        self.requestedAngles = {
+            'front_left': 0,
+            'front_right': 0,
+            'rear_left': 0,
+            'rear_right': 0
         }
 
         self.autonSteerStraight = config["AUTON_STEER_STRAIGHT"]
@@ -28,7 +51,7 @@ class SwerveDrive:
 
         return
     
-    def move(self, baseFwd, baseStrafe, rcw, bearing):
+    def move(self, fwd, strafe, rcw, bearing):
         
         """
         Calulates the speed and angle for each wheel given the requested movement
@@ -41,8 +64,9 @@ class SwerveDrive:
         :param rcw: the requestest magnitude of the rotational vector of a 2D plane
         """
         #self.log("SWERVEDRIVE: MoveAdjustment: ", self.swervometer.getTeamMoveAdjustment())
-        fwd = baseFwd #* self.swervometer.getTeamMoveAdjustment()
-        strafe = baseStrafe #* self.swervometer.getTeamMoveAdjustment()
+
+        #fwd = baseFwd #* self.swervometer.getTeamMoveAdjustment()
+        #strafe = baseStrafe #* self.swervometer.getTeamMoveAdjustment()
 
         #self.log("SWERVEDRIVE Moving:", fwd, strafe, rcw, bearing)
 
@@ -59,8 +83,8 @@ class SwerveDrive:
         #self.log("modified strafe: " + str(chassisStrafe) + ", modified fwd: " + str(chassisFwd))
         # self.dashboard.putNumber("Current Gyro Angle", self.getGyroAngle())
 
-        self.setFWD(chassisFwd)
-        self.setStrafe(chassisStrafe)
+        self.requestedVectors['fwd'] = chassisFwd
+        self.requestedVectors['strafe'] = chassisStrafe
 
         # self.setFwd(fwd)
         # self.setStrafe(strafe)
@@ -68,18 +92,77 @@ class SwerveDrive:
         # self.log("Drivetrain: Move: shouldSteerStraight:", self.shouldSteerStraight())
 
         if self.shouldSteerStraight():
-            self.setRCW(self.steerStraight(rcw, bearing))
+            self.requestedVectors['rcw'] = self.steerStraight(rcw, bearing)
         else:
-            self.setRCW(rcw)
+            self.requestedVectors['rcw'] = rcw
+    
+        self.calculateVectors() #this will then in turn call execute
+
     
     def calculateVectors(self):
-        self.requestedVectors['fwd'], self.requestedVectors['strafe'], self.requestedVectors['rcw'] = self.normalize([self.requestedVectors['fwd'], self.requestedVectors['strafe'], self.requestedVectors['rcw']])
+        
+        self.requestedVectors = self.normalizeDictionary(self.requestedVectors)
+        
         frameDimensionX, frameDimensionY = [0, 0]   #self.swerveometer.getFrameDimensions()
         ratio = math.hypot(frameDimensionX, frameDimensionY)
+
+        # Old velocities per quadrant
+        rightY = self.requestedVectors['fwd'] + (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
+        leftY = self.requestedVectors['fwd'] - (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
+        rearX = self.requestedVectors['strafe'] + (self.requestedVectors['rcw'] * (frameDimensionX / ratio))
+        frontX = self.requestedVectors['strafe'] - (self.requestedVectors['rcw'] * (frameDimensionX / ratio))
+        
+        # Velocities per quadrant
+        #rightY = (self.requestedVectors['strafe'] * speedSign) + (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
+        #leftY = (self.requestedVectors['strafe'] * speedSign) - (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
+        #rearX = (self.requestedVectors['fwd'] * speedSign) + (self.requestedVectors['rcw'] * (frameDimensionX / ratio))
+        #frontX = (self.requestedVectors['fwd'] * speedSign) - (self.requestedVectors['rcw'] * (frameDimensionX / ratio))
+
+        # Calculate the speed and angle for each wheel given the combination of the corresponding quadrant vectors
+        rearLeftSpeed = math.hypot(frontX, rightY)
+        rearLeftAngle = math.degrees(math.atan2(frontX, rightY))
+
+        frontLeftSpeed = math.hypot(frontX, leftY)
+        frontLeftAngle = math.degrees(math.atan2(frontX, leftY))
+
+        rearRightSpeed = math.hypot(rearX, rightY)
+        rearRightAngle = math.degrees(math.atan2(rearX, rightY))
+
+        frontRightSpeed = math.hypot(rearX, leftY)
+        frontRightAngle = math.degrees(math.atan2(rearX, leftY))
+
+        self.requestedSpeeds['front_left'] = frontLeftSpeed
+        self.requestedSpeeds['front_right'] = frontRightSpeed
+        self.requestedSpeeds['rear_left'] = rearLeftSpeed
+        self.requestedSpeeds['rear_right'] = rearRightSpeed
+
+        self.requestedAngles['front_left'] = frontLeftAngle
+        self.requestedAngles['front_right'] = frontRightAngle
+        self.requestedAngles['rear_left'] = rearLeftAngle
+        self.requestedAngles['rear_right'] = rearRightAngle
+
+        self.requestedSpeeds = self.normalizeDictionary(self.requestedSpeeds)
+
+        # Zero request vectors for saftey reasons
+        self.requestedVectors['fwd'] = 0.0
+        self.requestedVectors['strafe'] = 0.0
+        self.requestedVectors['rcw'] = 0.0
+
         return
     
     def execute(self):
-        return
+
+        """
+        for key in self.modules:
+            self._requested_speeds[key] = self._requested_speeds[key] * self.swervometer.getCOMmult(key)
+        """
+        for key in self.modules:
+            self.modules[key].move(self.requestedSpeeds[key], self.requestedAngles[key])
+
+        if(self.updateBearing):
+            self.bearing = self.getGyroAngle()
+            self.updateBearing = False
+
     
     def getGyroAngle(self):
         #angle = (self.gyro.getAngle() - self.gyroAngleZero + self.swervometer.getTeamGyroAdjustment()) % 360
@@ -88,38 +171,50 @@ class SwerveDrive:
     
     def getBearing(self):
         return self.bearing
-
-    def setFWD(self, fwd):
-        #fwd *= self.xymultiplier
-        self.requestedVectors['fwd'] = fwd
-
-    def setStrafe(self, strafe):
-        #strafe *= self.xymultiplier
-        self.requestedVectors['strafe'] = strafe
-    
-    def setRCW(self, rcw):
-        #rcw *= self.xymultiplier
-        self.requestedVectors['rcw'] = rcw
-        return
     
     def shouldSteerStraight(self):
         if self.inAuton:
             return self.autonSteerStraight
         else:
             return self.teleopSteerStraight
+    
+    def steerStraight(self, rcw, bearing):
         
-    def normalize(data):
+        self.bearing = bearing
+        currentAngle = self.getGyroAngle()
+        if rcw != 0:
+            self.updateBearing = True
+            return rcw
+        else:
+            self.updateBearing = False
+            angleDiff = abs(currentAngle - self.bearing)
+            if (angleDiff) > 180:
+                angleDiff = 360 - angleDiff
+                if self.bearing < currentAngle:
+                    targetAngle = currentAngle + angleDiff
+                else:
+                    targetAngle = currentAngle - angleDiff
+            else:
+                if self.bearing < currentAngle:
+                    targetAngle = currentAngle - angleDiff
+                else:
+                    targetAngle = currentAngle + angleDiff
+
+            rcwError = self.bearingPIDController.calculate(self.getGyroAngle(), targetAngle)
+            return rcwError
+        
+    def normalizeDictionary(data):
         """
         Get the maximum value in the data. If the max is more than 1,
         divide each data by that max.
-        :param data: The data to be normalized
-        :returns: The normalized data
+        :param data: The dictionary with the data to be normalized
+        :returns: The normalized dictionary with the data
         """
-        maxMagnitude = max(abs(x) for x in data)
+        maxMagnitude = max(abs(x) for x in data.values())
 
         if maxMagnitude > 1.0:
-            for i in range(len(data)):
-                data[i] = data[i] / maxMagnitude
+            for key in data:
+                data[key] = data[key] / maxMagnitude
         
         return data
 
