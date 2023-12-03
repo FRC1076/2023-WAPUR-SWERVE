@@ -75,9 +75,9 @@ class Elevator:
             print(f"shelf-D [{targetHeight}]")
 
         extendSpeed = self.pidController.calculate(self.getEncoderPosition(), targetHeight)
-        print("Elevator: moveToPos: ", self.pidController.getSetpoint(), " actual position: ", self.getEncoderPosition())
-        
-        self.extend(extendSpeed)
+        slowedExtendSpeed = extendSpeed * 0.1125
+        print("Elevator: moveToPos: ", self.pidController.getSetpoint(), " actual position: ", self.getEncoderPosition(),"Extend speed:", slowedExtendSpeed)
+        self.extend(slowedExtendSpeed)
     
     # Move elevator and reset target to where you end up.
     def move(self, targetSpeed):

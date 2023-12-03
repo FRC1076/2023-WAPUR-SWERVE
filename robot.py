@@ -90,13 +90,13 @@ class MyRobot(wpilib.TimedRobot):
 
         self.elevator.extend(slowedY)
        
-        if self.operator.xboxController.getAButtonPressed():
+        if self.operator.xboxController.getAButton():
             self.elevator.moveToHeight("A")
-        elif self.operator.xboxController.getBButtonPressed():
+        elif self.operator.xboxController.getBButton():
             self.elevator.moveToHeight("B")
-        elif self.operator.xboxController.getXButtonPressed():
+        elif self.operator.xboxController.getXButton():
             self.elevator.moveToHeight("C")
-        elif self.operator.xboxController.getYButtonPressed():
+        elif self.operator.xboxController.getYButton():
             self.elevator.moveToHeight("D")
 
         return
