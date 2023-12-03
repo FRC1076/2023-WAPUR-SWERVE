@@ -85,8 +85,11 @@ class MyRobot(wpilib.TimedRobot):
         #grabber_controller_value = (self.deadzoneCorrection(operator.getRightY(), self.operator.deadzone)) * operator_clutch
         y = self.operator.xboxController.getLeftY()
         adjustedY = self.deadzoneCorrection(y, self.operator.deadzone)
-        self.elevator.extend(adjustedY)
+        # decrease the value to have a slower reponse
+        slowedY = adjustedY * 0.2
 
+        self.elevator.extend(slowedY)
+       
         if self.operator.xboxController.getAButtonPressed():
             self.elevator.moveToHeight("A")
         elif self.operator.xboxController.getBButtonPressed():
