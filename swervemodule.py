@@ -1,6 +1,7 @@
 import wpilib
 import rev
 import ctre
+from wpimath.controller import PIDController
 
 class SwerveModule:
 
@@ -20,13 +21,9 @@ class SwerveModule:
         else:
             self.positionSign = -1
             self.moduleFlipped = True
-        self.headingPIDController = self.rotateMotor.getPIDController()
-        self.headingPIDController.setP(config["ROTATE_kP"])
-        self.headingPIDController.setI(config["ROTATE_kI"])
-        self.headingPIDController.setD(config["ROTATE_kD"])
+        self.headingPIDController = PIDController(config["ROTATE_kP"], config["ROTATE_kI"], config["ROTATE_kD"])
         self.headingPIDController.enableContinuousInput(0, 360)
         self.headingPIDController.setTolerance(0.5, 0.5)
-        return
 
     def move(self, speed, deg):
         """

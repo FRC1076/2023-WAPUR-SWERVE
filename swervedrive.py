@@ -1,7 +1,7 @@
 from swervemodule import SwerveModule
 import math
 from wpimath.controller import PIDController
-from util import clamp
+#from util import clamp
 
 
 class SwerveDrive:
@@ -11,7 +11,7 @@ class SwerveDrive:
         self.frontLeftModule = SwerveModule(config["FRONT_LEFT_MODULE"])
         self.frontRightModule = SwerveModule(config["FRONT_RIGHT_MODULE"])
         self.rearLeftModule = SwerveModule(config["REAR_LEFT_MODULE"])
-        self.realRightModule = SwerveModule(config["REAR_RIGHT_MODULE"])
+        self.rearRightModule = SwerveModule(config["REAR_RIGHT_MODULE"])
         self.modules = {
             'front_left': self.frontLeftModule,
             'front_right': self.frontRightModule,
@@ -23,7 +23,7 @@ class SwerveDrive:
         self.gyroAngleZero = 0.0 #Not sure why we need this, but keep this for right now it was in last year's code
         self.bearing = self.getGyroAngle()
         self.updateBearing = False
-        self.bearingPIDController = PIDController(self.config["BEARING_kP"], self.config["BEARING_kI"], self.config["BEARING_kD"])
+        self.bearingPIDController = PIDController(config["BEARING_kP"], config["BEARING_kI"], config["BEARING_kD"])
 
         self.requestedVectors = {
             'fwd': 0,
@@ -75,7 +75,12 @@ class SwerveDrive:
         currentAngle = self.getGyroAngle() % 360
         desiredAngle = (math.degrees(math.atan2(strafe, fwd))) % 360
         chassisAngle = (desiredAngle - currentAngle) % 360
-        magnitude = clamp(math.hypot(strafe, fwd), 0, 1)
+        #magnitude = clamp(math.hypot(strafe, fwd), 0, 1)
+        magnitude = math.hypot(strafe, fwd)
+        if magnitude < 0:
+            magnitude = 0
+        if magnitude > 1:
+            magnitude = 1
         
         chassisFwd = magnitude * math.sin(math.radians(chassisAngle))
         chassisStrafe = magnitude * math.cos(math.radians(chassisAngle))
