@@ -11,10 +11,10 @@ from wpilib import interfaces
 import rev
 import ctre
 from navx import AHRS
-from networktables import NetworkTables
 
 from robotconfig import robotconfig, MODULE_NAMES
 from controller import Controller
+from elevator import Elevator
 """
 from swervedrive import SwerveDrive
 from swervemodule import SwerveModule
@@ -44,6 +44,7 @@ class MyRobot(wpilib.TimedRobot):
         controllers = self.initControllers(robotconfig["CONTROLLERS"])
         self.driver = controllers[0]
         self.operator = controllers[1]
+        self.elevator = Elevator(robotconfig["ELEVATOR"])
         return
     
     def initLogger(self, dir):
@@ -60,15 +61,10 @@ class MyRobot(wpilib.TimedRobot):
             lta = ctrlConfig['LEFT_TRIGGER_AXIS']
             rta = ctrlConfig['RIGHT_TRIGGER_AXIS']
             ctrls.append(Controller(ctrl, dz, lta, rta))
+
         return ctrls
     
     def initVision(self, config):
-        return
-    
-    def initElevator(self, config):
-        return
-    
-    def initGrabber(self, config):
         return
     
     def initDrivetrain(self, config):
@@ -84,8 +80,28 @@ class MyRobot(wpilib.TimedRobot):
         return True
     
     def teleopPeriodic(self):
+        #Find the value the arm will move at
+        #elevator_controller_value = (self.deadzoneCorrection(operator.getLeftY(), self.operator.deadzone) / 5) * operator_clutch
+        #grabber_controller_value = (self.deadzoneCorrection(operator.getRightY(), self.operator.deadzone)) * operator_clutch
+        y = self.operator.xboxController.getLeftY()
+        adjustedY = self.deadzoneCorrection(y, self.operator.deadzone)
+        # decrease the value to have a slower reponse
+        slowedY = adjustedY * 0.2
+
+        self.elevator.extend(slowedY)
+       
+        if self.operator.xboxController.getAButton():
+            self.elevator.moveToHeight("A")
+        elif self.operator.xboxController.getBButton():
+            self.elevator.moveToHeight("B")
+        elif self.operator.xboxController.getXButton():
+            self.elevator.moveToHeight("C")
+        elif self.operator.xboxController.getYButton():
+            self.elevator.moveToHeight("D")
+
         return
-    
+
+
     def teleopDrivetrain(self):
         return
     
@@ -102,7 +118,19 @@ class MyRobot(wpilib.TimedRobot):
         return
     
     def deadzoneCorrection(self, val, deadzone):
-        return
+        """
+        Given the deadzone value x, the deadzone both eliminates all
+        values between -x and x, and scales the remaining values from
+        -1 to 1, to (-1 + x) to (1 - x)
+        """
+        if abs(val) < deadzone:
+            return 0
+        elif val < 0:
+            x = (abs(val) - deadzone) / (1 - deadzone)
+            return -x
+        else:
+            x = (val - deadzone) / (1 - deadzone)
+            return x
 
     def log(self, *dataToLog):
         return
