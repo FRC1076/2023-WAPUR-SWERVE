@@ -49,8 +49,13 @@ class SwerveDrive:
         self.teleopSteerStraight = config["TELEOP_STEER_STRAIGHT"]
         self.inAuton = False #change later
 
-        return
+        self.lower_input_thresh = 0.001 #Set this into auton later
+        self.xy_multiplier = 0.65
+        self.rotation_multiplier = 0.5
     
+        self.frameDimensionX = 13.75 #move to config file
+        self.frameDimensionY = 9.75
+
     def move(self, fwd, strafe, rcw, bearing):
         
         """
@@ -88,8 +93,8 @@ class SwerveDrive:
         #self.log("modified strafe: " + str(chassisStrafe) + ", modified fwd: " + str(chassisFwd))
         # self.dashboard.putNumber("Current Gyro Angle", self.getGyroAngle())
 
-        self.requestedVectors['fwd'] = chassisFwd
-        self.requestedVectors['strafe'] = chassisStrafe
+        self.requestedVectors['fwd'] = chassisFwd * self.xy_multiplier
+        self.requestedVectors['strafe'] = chassisStrafe * self.xy_multiplier
 
         # self.setFwd(fwd)
         # self.setStrafe(strafe)
@@ -97,9 +102,9 @@ class SwerveDrive:
         # self.log("Drivetrain: Move: shouldSteerStraight:", self.shouldSteerStraight())
 
         if self.shouldSteerStraight():
-            self.requestedVectors['rcw'] = self.steerStraight(rcw, bearing)
+            self.requestedVectors['rcw'] = self.steerStraight(rcw, bearing) * self.rotation_multiplier
         else:
-            self.requestedVectors['rcw'] = rcw
+            self.requestedVectors['rcw'] = rcw * self.rotation_multiplier
     
         self.calculateVectors() #this will then in turn call execute
 
@@ -107,15 +112,45 @@ class SwerveDrive:
     def calculateVectors(self):
         
         self.requestedVectors = self.normalizeDictionary(self.requestedVectors)
-        
-        frameDimensionX, frameDimensionY = [0, 0]   #self.swerveometer.getFrameDimensions()
-        ratio = math.hypot(frameDimensionX, frameDimensionY)
+
+        if self.threshold_input_vectors:
+            #self.log("checking thresholds: fwd: ", self._requested_vectors['fwd'], "strafe: ", self._requested_vectors['strafe'], "rcw: ", self._requested_vectors['rcw'])
+            if abs(self._requested_vectors['fwd']) < self.lower_input_thresh:
+                #self.log("forward = 0")
+                self._requested_vectors['fwd'] = 0
+
+            if abs(self._requested_vectors['strafe']) < self.lower_input_thresh:
+                #self.log("strafe = 0")
+                self._requested_vectors['strafe'] = 0
+
+            if abs(self._requested_vectors['rcw']) < self.lower_input_thresh:
+                #self.log("rcw = 0")
+                self._requested_vectors['rcw'] = 0
+
+            if self._requested_vectors['rcw'] == 0 and self._requested_vectors['strafe'] == 0 and self._requested_vectors['fwd'] == 0:  # Prevents a useless loop.
+                #self.log("all three zero")
+                self._requested_speeds = dict.fromkeys(self._requested_speeds, 0) # Do NOT reset the wheel angles.
+
+                if self.wheel_lock:
+                    # This is intended to set the wheels in such a way that it
+                    # difficult to push the robot (intended for defense)
+
+                    self._requested_angles['front_left'] = -45
+                    self._requested_angles['front_right'] = 45
+                    self._requested_angles['rear_left'] = 45
+                    self._requested_angles['rear_right'] = -45
+
+                    #self.wheel_lock = False
+                    #self.log("testing wheel lock")
+                return
+            
+        ratio = math.hypot(self.frameDimensionX, self.frameDimensionY)
 
         # Old velocities per quadrant
-        rightY = self.requestedVectors['fwd'] + (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
-        leftY = self.requestedVectors['fwd'] - (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
-        rearX = self.requestedVectors['strafe'] + (self.requestedVectors['rcw'] * (frameDimensionX / ratio))
-        frontX = self.requestedVectors['strafe'] - (self.requestedVectors['rcw'] * (frameDimensionX / ratio))
+        rightY = self.requestedVectors['fwd'] + (self.requestedVectors['rcw'] * (self.frameDimensionY / ratio))
+        leftY = self.requestedVectors['fwd'] - (self.requestedVectors['rcw'] * (self.frameDimensionY / ratio))
+        rearX = self.requestedVectors['strafe'] + (self.requestedVectors['rcw'] * (self.frameDimensionX / ratio))
+        frontX = self.requestedVectors['strafe'] - (self.requestedVectors['rcw'] * (self.frameDimensionX / ratio))
         
         # Velocities per quadrant
         #rightY = (self.requestedVectors['strafe'] * speedSign) + (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
@@ -161,8 +196,11 @@ class SwerveDrive:
         for key in self.modules:
             self._requested_speeds[key] = self._requested_speeds[key] * self.swervometer.getCOMmult(key)
         """
+
         for key in self.modules:
             self.modules[key].move(self.requestedSpeeds[key], self.requestedAngles[key])
+
+        self.requestedSpeeds = dict.fromkeys(self.requestedSpeeds, 0)
 
         if(self.updateBearing):
             self.bearing = self.getGyroAngle()
@@ -193,7 +231,7 @@ class SwerveDrive:
         else:
             self.updateBearing = False
             angleDiff = abs(currentAngle - self.bearing)
-            if (angleDiff) > 180:
+            if angleDiff > 180:
                 angleDiff = 360 - angleDiff
                 if self.bearing < currentAngle:
                     targetAngle = currentAngle + angleDiff
