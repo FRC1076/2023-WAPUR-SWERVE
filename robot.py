@@ -87,7 +87,6 @@ class MyRobot(wpilib.TimedRobot):
         adjustedY = self.deadzoneCorrection(y, self.operator.deadzone)
         # decrease the value to have a slower reponse
         slowedY = adjustedY * 0.2
-
         self.elevator.extend(slowedY)
        
         if self.operator.xboxController.getAButton():

@@ -54,8 +54,8 @@ class Elevator:
             return
         
         # the motors are running backwards, invert targetSpeed.
-        self.rightMotor.set(-targetSpeed)
-        self.leftMotor.set(-targetSpeed)
+        self.rightMotor.set(targetSpeed) #test it
+        self.leftMotor.set(targetSpeed)
 
         return
     
@@ -63,7 +63,7 @@ class Elevator:
         targetHeight = 0
         if shelfLabel == "A":
             targetHeight = self.shelfHeightA
-            print(f"shelf-A [{targetHeight}]")
+            print(f"shelf-A [{targetHeight}]","Current Height:",self.getEncoderPosition())
         elif shelfLabel == "B":
              targetHeight = self.shelfHeightB
              print(f"shelf-B [{targetHeight}]")
@@ -74,9 +74,10 @@ class Elevator:
             targetHeight = self.shelfHeightD  
             print(f"shelf-D [{targetHeight}]")
 
-        extendSpeed = self.pidController.calculate(self.getEncoderPosition(), targetHeight)
-        slowedExtendSpeed = extendSpeed * 0.1125
+        extendSpeed = self.pidController.calculate(self.getEncoderPosition(), targetHeight) # speed at which elevator has to move according to PID
+        slowedExtendSpeed = extendSpeed * 0.06125 # original number: 0.1125
         print("Elevator: moveToPos: ", self.pidController.getSetpoint(), " actual position: ", self.getEncoderPosition(),"Extend speed:", slowedExtendSpeed)
+        
         self.extend(slowedExtendSpeed)
     
     # Move elevator and reset target to where you end up.
