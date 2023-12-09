@@ -58,7 +58,7 @@ class SwerveModule:
         
         rotateOutput = self.headingPIDController.calculate(self.getCurrentAngle(), angle)
 
-        self.rotateMotor.set(rotateOutput)
+        #self.rotateMotor.set(rotateOutput)
         self.driveMotor.set(driveOutput)
 
 

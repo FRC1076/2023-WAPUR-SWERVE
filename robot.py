@@ -94,12 +94,17 @@ class MyRobot(wpilib.TimedRobot):
     def teleopDrivetrain(self):
 
         #Get the joystick inputs for swerve
-        fwd = self.deadzoneCorrection(self.driver.getLeftY(), self.driver.deadzone)
-        strafe = self.deadzoneCorrection(self.driver.getLeftX(), self.driver.deadzone)
-        rcw = self.deadzoneCorrection(self.driver.getRightX(), self.driver.deadzone)
+        fwd = self.deadzoneCorrection(self.driver.xboxController.getLeftY(), self.driver.deadzone)
+        strafe = self.deadzoneCorrection(self.driver.xboxController.getLeftX(), self.driver.deadzone)
+        rcw = self.deadzoneCorrection(self.driver.xboxController.getRightX(), self.driver.deadzone)
 
+        """controller_at_180_to_bot = -1
+        fwd *= controller_at_180_to_bot
+        strafe *= controller_at_180_to_bot"""
+        print(fwd, strafe, rcw)
         #Call move, which will move the swerve drive
-        self.drivetrain.move(fwd, strafe, rcw, self.drivetrain.getBearing())
+        if fwd != 0 or strafe != 0 or rcw != 0:
+            self.drivetrain.move(-fwd, strafe, rcw, self.drivetrain.getBearing())
         #move will automatically call execute
         #self.drivetrain.execute()
         

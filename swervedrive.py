@@ -49,12 +49,15 @@ class SwerveDrive:
         self.teleopSteerStraight = config["TELEOP_STEER_STRAIGHT"]
         self.inAuton = False #change later
 
-        self.lower_input_thresh = 0.001 #Set this into auton later
-        self.xy_multiplier = 0.65
-        self.rotation_multiplier = 0.5
+        self.thresholdInputVectors = True
+        self.lowerInputThresh = 0.001 #Set this into auton later
+        self.xyMultiplier = 0.65
+        self.rotationMultiplier = 0.5
     
         self.frameDimensionX = 13.75 #move to config file
         self.frameDimensionY = 9.75
+
+        self.wheelLock = False
 
     def move(self, fwd, strafe, rcw, bearing):
         
@@ -86,15 +89,15 @@ class SwerveDrive:
             magnitude = 0
         if magnitude > 1:
             magnitude = 1
-        
+        #print(magnitude)
         chassisFwd = magnitude * math.sin(math.radians(chassisAngle))
         chassisStrafe = magnitude * math.cos(math.radians(chassisAngle))
-
+        #print(chassisFwd, chassisStrafe)
         #self.log("modified strafe: " + str(chassisStrafe) + ", modified fwd: " + str(chassisFwd))
         # self.dashboard.putNumber("Current Gyro Angle", self.getGyroAngle())
 
-        self.requestedVectors['fwd'] = chassisFwd * self.xy_multiplier
-        self.requestedVectors['strafe'] = chassisStrafe * self.xy_multiplier
+        self.requestedVectors['fwd'] = chassisFwd * self.xyMultiplier
+        self.requestedVectors['strafe'] = chassisStrafe * self.xyMultiplier
 
         # self.setFwd(fwd)
         # self.setStrafe(strafe)
@@ -102,48 +105,46 @@ class SwerveDrive:
         # self.log("Drivetrain: Move: shouldSteerStraight:", self.shouldSteerStraight())
 
         if self.shouldSteerStraight():
-            self.requestedVectors['rcw'] = self.steerStraight(rcw, bearing) * self.rotation_multiplier
+            self.requestedVectors['rcw'] = self.steerStraight(rcw, bearing) * self.rotationMultiplier
         else:
-            self.requestedVectors['rcw'] = rcw * self.rotation_multiplier
-    
+            self.requestedVectors['rcw'] = rcw * self.rotationMultiplier
         self.calculateVectors() #this will then in turn call execute
 
     
     def calculateVectors(self):
-        
-        self.requestedVectors = self.normalizeDictionary(self.requestedVectors)
-
-        if self.threshold_input_vectors:
-            #self.log("checking thresholds: fwd: ", self._requested_vectors['fwd'], "strafe: ", self._requested_vectors['strafe'], "rcw: ", self._requested_vectors['rcw'])
-            if abs(self._requested_vectors['fwd']) < self.lower_input_thresh:
+        #print(self.requestedVectors['fwd'], self.requestedVectors['strafe'], self.requestedVectors['rcw'])
+        self.requestedVectors['fwd'], self.requestedVectors['strafe'], self.requestedVectors['rcw'] = self.normalize([self.requestedVectors['fwd'], self.requestedVectors['strafe'], self.requestedVectors['rcw']])
+        #print(self.requestedVectors)
+        if self.thresholdInputVectors:
+            #self.log("checking thresholds: fwd: ", self.requestedVectors['fwd'], "strafe: ", self.requestedVectors['strafe'], "rcw: ", self.requestedVectors['rcw'])
+            if abs(self.requestedVectors['fwd']) < self.lowerInputThresh:
                 #self.log("forward = 0")
-                self._requested_vectors['fwd'] = 0
+                self.requestedVectors['fwd'] = 0
 
-            if abs(self._requested_vectors['strafe']) < self.lower_input_thresh:
+            if abs(self.requestedVectors['strafe']) < self.lowerInputThresh:
                 #self.log("strafe = 0")
-                self._requested_vectors['strafe'] = 0
+                self.requestedVectors['strafe'] = 0
 
-            if abs(self._requested_vectors['rcw']) < self.lower_input_thresh:
+            if abs(self.requestedVectors['rcw']) < self.lowerInputThresh:
                 #self.log("rcw = 0")
-                self._requested_vectors['rcw'] = 0
+                self.requestedVectors['rcw'] = 0
 
-            if self._requested_vectors['rcw'] == 0 and self._requested_vectors['strafe'] == 0 and self._requested_vectors['fwd'] == 0:  # Prevents a useless loop.
+            if self.requestedVectors['rcw'] == 0 and self.requestedVectors['strafe'] == 0 and self.requestedVectors['fwd'] == 0:  # Prevents a useless loop.
                 #self.log("all three zero")
-                self._requested_speeds = dict.fromkeys(self._requested_speeds, 0) # Do NOT reset the wheel angles.
+                self.requestedSpeeds = dict.fromkeys(self.requestedSpeeds, 0) # Do NOT reset the wheel angles.
 
-                if self.wheel_lock:
+                if self.wheelLock:
                     # This is intended to set the wheels in such a way that it
                     # difficult to push the robot (intended for defense)
 
-                    self._requested_angles['front_left'] = -45
-                    self._requested_angles['front_right'] = 45
-                    self._requested_angles['rear_left'] = 45
-                    self._requested_angles['rear_right'] = -45
+                    self.requestedAngles['front_left'] = -45
+                    self.requestedAngles['front_right'] = 45
+                    self.requestedAngles['rear_left'] = 45
+                    self.requestedAngles['rear_right'] = -45
 
-                    #self.wheel_lock = False
+                    #self.wheelLock = False
                     #self.log("testing wheel lock")
                 return
-            
         ratio = math.hypot(self.frameDimensionX, self.frameDimensionY)
 
         # Old velocities per quadrant
@@ -151,7 +152,6 @@ class SwerveDrive:
         leftY = self.requestedVectors['fwd'] - (self.requestedVectors['rcw'] * (self.frameDimensionY / ratio))
         rearX = self.requestedVectors['strafe'] + (self.requestedVectors['rcw'] * (self.frameDimensionX / ratio))
         frontX = self.requestedVectors['strafe'] - (self.requestedVectors['rcw'] * (self.frameDimensionX / ratio))
-        
         # Velocities per quadrant
         #rightY = (self.requestedVectors['strafe'] * speedSign) + (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
         #leftY = (self.requestedVectors['strafe'] * speedSign) - (self.requestedVectors['rcw'] * (frameDimensionY / ratio))
@@ -159,6 +159,7 @@ class SwerveDrive:
         #frontX = (self.requestedVectors['fwd'] * speedSign) - (self.requestedVectors['rcw'] * (frameDimensionX / ratio))
 
         # Calculate the speed and angle for each wheel given the combination of the corresponding quadrant vectors
+        #print("rightY, leftY, rearX, frontX", rightY, leftY, rearX, frontX)
         rearLeftSpeed = math.hypot(frontX, rightY)
         rearLeftAngle = math.degrees(math.atan2(frontX, rightY))
 
@@ -170,6 +171,8 @@ class SwerveDrive:
 
         frontRightSpeed = math.hypot(rearX, leftY)
         frontRightAngle = math.degrees(math.atan2(rearX, leftY))
+
+        #print("!!!!!", rearLeftSpeed, rearLeftAngle, frontLeftSpeed, frontLeftAngle, rearRightSpeed, rearRightAngle, frontRightSpeed, frontRightAngle)
 
         self.requestedSpeeds['front_left'] = frontLeftSpeed
         self.requestedSpeeds['front_right'] = frontRightSpeed
@@ -187,14 +190,14 @@ class SwerveDrive:
         self.requestedVectors['fwd'] = 0.0
         self.requestedVectors['strafe'] = 0.0
         self.requestedVectors['rcw'] = 0.0
-
+        self.execute()
         return
     
     def execute(self):
 
         """
         for key in self.modules:
-            self._requested_speeds[key] = self._requested_speeds[key] * self.swervometer.getCOMmult(key)
+            self.requestedSpeeds[key] = self.requestedSpeeds[key] * self.swervometer.getCOMmult(key)
         """
 
         for key in self.modules:
@@ -205,7 +208,6 @@ class SwerveDrive:
         if(self.updateBearing):
             self.bearing = self.getGyroAngle()
             self.updateBearing = False
-
     
     def getGyroAngle(self):
         #angle = (self.gyro.getAngle() - self.gyroAngleZero + self.swervometer.getTeamGyroAdjustment()) % 360
@@ -246,7 +248,7 @@ class SwerveDrive:
             rcwError = self.bearingPIDController.calculate(self.getGyroAngle(), targetAngle)
             return rcwError
         
-    def normalizeDictionary(data):
+    def normalizeDictionary(self, data):
         """
         Get the maximum value in the data. If the max is more than 1,
         divide each data by that max.
@@ -261,3 +263,17 @@ class SwerveDrive:
         
         return data
 
+    def normalize(self, data):
+        """
+        Get the maximum value in the data. If the max is more than 1,
+        divide each data by that max.
+        :param data: The data to be normalized
+        :returns: The normalized data
+        """
+        maxMagnitude = max(abs(x) for x in data)
+
+        if maxMagnitude > 1.0:
+            for i in range(len(data)):
+                data[i] = data[i] / maxMagnitude
+        
+        return data
