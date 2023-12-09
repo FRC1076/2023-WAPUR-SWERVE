@@ -88,7 +88,7 @@ class MyRobot(wpilib.TimedRobot):
         # decrease the value to have a slower reponse
         slowedY = adjustedY * 0.2
         self.elevator.extend(slowedY)
-       
+        
         if self.operator.xboxController.getAButton():
             self.elevator.moveToHeight("A")
         elif self.operator.xboxController.getBButton():
@@ -97,7 +97,6 @@ class MyRobot(wpilib.TimedRobot):
             self.elevator.moveToHeight("C")
         elif self.operator.xboxController.getYButton():
             self.elevator.moveToHeight("D")
-
         return
 
 

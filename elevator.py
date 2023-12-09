@@ -36,26 +36,26 @@ class Elevator:
         self.rightEncoder.setPosition(0)
         self.leftEncoder.setPosition(0)
 
-    def extend(self, targetSpeed):  # controls length of the elevator 
-            
+    def extend(self, targetSpeed):  # controls length of the elevator   
         if targetSpeed > 1:
             targetSpeed = 1
         if targetSpeed < -1:
             targetSpeed = -1
-
+        
         #make sure arm doesn't go past limit
         if self.getEncoderPosition() > self.upperSafety and targetSpeed < 0:
             self.rightMotor.set(0)
             self.leftMotor.set(0)
-            return
+            #return
         if self.getEncoderPosition() < self.lowerSafety and targetSpeed > 0:
             self.rightMotor.set(0)
             self.leftMotor.set(0)
-            return
-        
+            #return
+
         # the motors are running backwards, invert targetSpeed.
-        self.rightMotor.set(targetSpeed) #test it
-        self.leftMotor.set(targetSpeed)
+        print("Speed:", targetSpeed) # "targetHeight", targetHeight)
+        self.rightMotor.set(-targetSpeed) #test it
+        self.leftMotor.set(-targetSpeed)
 
         return
     
@@ -63,27 +63,28 @@ class Elevator:
         targetHeight = 0
         if shelfLabel == "A":
             targetHeight = self.shelfHeightA
-            print(f"shelf-A [{targetHeight}]","Current Height:",self.getEncoderPosition())
+            #print(f"shelf-A [{targetHeight}]","Current Height:",self.getEncoderPosition())
         elif shelfLabel == "B":
              targetHeight = self.shelfHeightB
-             print(f"shelf-B [{targetHeight}]")
+             #print(f"shelf-B [{targetHeight}]")
         elif shelfLabel == "C":
              targetHeight = self.shelfHeightC
-             print(f"shelf-C [{targetHeight}]")
+             #print(f"shelf-C [{targetHeight}]")
         else:
             targetHeight = self.shelfHeightD  
-            print(f"shelf-D [{targetHeight}]")
+            #print(f"shelf-D [{targetHeight}]")
 
         extendSpeed = self.pidController.calculate(self.getEncoderPosition(), targetHeight) # speed at which elevator has to move according to PID
-        slowedExtendSpeed = extendSpeed * 0.06125 # original number: 0.1125
+        print("encoder position",self.getEncoderPosition(), "targetHeight",targetHeight)
+        slowedExtendSpeed = extendSpeed # original number: 0.1125 (speed of elevator reduced to become a decimal number)
         print("Elevator: moveToPos: ", self.pidController.getSetpoint(), " actual position: ", self.getEncoderPosition(),"Extend speed:", slowedExtendSpeed)
         
-        self.extend(slowedExtendSpeed)
+        self.extend(-slowedExtendSpeed)
     
     # Move elevator and reset target to where you end up.
-    def move(self, targetSpeed):
-        self.extend(targetSpeed)
-        self.targetPosition = self.getEncoderPosition()
+    #def move(self, targetSpeed):
+        #self.extend(targetSpeed)
+        #self.targetPosition = self.getEncoderPosition()
     
     def resetEncoders(self):
         self.leftEncoder.setPosition(0)
@@ -92,6 +93,7 @@ class Elevator:
 
     def getEncoderPosition(self):
         return self.rightEncoder.getPosition()
+        #return 16
     
      #def log(self, *dataToLog):
         #self.logger.log(DASH_PREFIX, dataToLog)

@@ -45,9 +45,9 @@ elevatorConfig = {
     "MARGIN": 1/TICKS_PER_INCH, # Extra height so the crate is slightly above shelf surface
     'LOWER_SAFETY': 1,
     'UPPER_SAFETY': 33,
-    "KP": 0.01, #make small 
-    "KI": 1.0,
-    "KD": 0,
+    "KP": 0.1, #make small 
+    "KI": 0.01,
+    "KD": 0.005,
 }
 
 grabberConfig = {
