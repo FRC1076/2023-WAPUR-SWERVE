@@ -646,7 +646,7 @@ class SwerveDrive:
                     ##self.log("testing wheel lock")
                 return
         
-        frame_dimension_x, frame_dimension_y = self.swervometer.getFrameDimensions()
+        frame_dimension_x, frame_dimension_y = [13.75, 9.75]
         ratio = math.hypot(frame_dimension_x, frame_dimension_y)
 
         #theta = self.getGyroAngle()
