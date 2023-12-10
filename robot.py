@@ -103,8 +103,9 @@ class MyRobot(wpilib.TimedRobot):
         strafe *= controller_at_180_to_bot"""
         print(fwd, strafe, rcw)
         #Call move, which will move the swerve drive
-        if fwd != 0 or strafe != 0 or rcw != 0:
-            self.drivetrain.move(-fwd, strafe, rcw, self.drivetrain.getBearing())
+        #if fwd != 0 or strafe != 0 or rcw != 0:
+        self.drivetrain.move(-fwd, strafe, rcw, self.drivetrain.getBearing())
+        self.drivetrain.execute()
         #move will automatically call execute
         #self.drivetrain.execute()
         
