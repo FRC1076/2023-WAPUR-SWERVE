@@ -134,6 +134,9 @@ class SwerveDrive:
 
         self.bearing = self.getGyroAngle()
         self.updateBearing = False
+
+        self.frameDimensionX = config["ROBOT_SWERVE_MODULE_OFFSET_X"]
+        self.frameDimensionY = config["ROBOT_SWERVE_MODULE_OFFSET_Y"]
         # TODO: 
         # - tune PID values
         """
@@ -646,8 +649,7 @@ class SwerveDrive:
                     ##self.log("testing wheel lock")
                 return
         
-        frame_dimension_x, frame_dimension_y = [13.75, 9.75]
-        ratio = math.hypot(frame_dimension_x, frame_dimension_y)
+        ratio = math.hypot(self.frameDimensionX, self.frameDimensionY)
 
         #theta = self.getGyroAngle()
         #if (theta > 45 and theta < 135) or (theta > 225 and theta < 315):

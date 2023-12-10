@@ -64,6 +64,8 @@ drivetrainConfig = {
     "BEARING_kD": 0.0001,
     "AUTON_STEER_STRAIGHT": False,
     "TELEOP_STEER_STRAIGHT": False,
+    "ROBOT_SWERVE_MODULE_OFFSET_X": 13.75,
+    "ROBOT_SWERVE_MODULE_OFFSET_Y": 9.75,
 }
 
 visionConfig = {
