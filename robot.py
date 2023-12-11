@@ -86,7 +86,8 @@ class MyRobot(wpilib.TimedRobot):
         y = self.operator.xboxController.getLeftY()
         adjustedY = self.deadzoneCorrection(y, self.operator.deadzone)
         # decrease the value to have a slower reponse
-        slowedY = adjustedY * 0.2
+        slowingFactor = 0.2
+        slowedY = adjustedY * slowingFactor
         self.elevator.extend(slowedY)
         
         if self.operator.xboxController.getAButton():
@@ -97,8 +98,16 @@ class MyRobot(wpilib.TimedRobot):
             self.elevator.moveToHeight("C")
         elif self.operator.xboxController.getYButton():
             self.elevator.moveToHeight("D")
-        return
 
+        intakeSpeed = self.operator.getLeftTriggerAxis()
+        ejectSpeed = self.operator.getRightTriggerAxis()
+
+        if intakeSpeed > 0:
+            self.elevator.intake(intakeSpeed * slowingFactor)
+        elif ejectSpeed > 0:
+            self.elevator.eject(ejectSpeed)
+            
+        return
 
     def teleopDrivetrain(self):
         return

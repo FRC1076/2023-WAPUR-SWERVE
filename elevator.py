@@ -27,6 +27,7 @@ class Elevator:
         motorType = rev.CANSparkMaxLowLevel.MotorType.kBrushless
         self.rightMotor = rev.CANSparkMax(config["RIGHT_MOTOR_ID"], motorType) # elevator up-down
         self.leftMotor = rev.CANSparkMax(config["LEFT_MOTOR_ID"], motorType) # elevator up-down
+        self.grabberMotor = rev.CANSparkMax(config["GRABBER_MOTOR_ID"], motorType) # elevator up-down
 
         self.pidController = PIDController(kP, kI, kD)
         self.pidController.setTolerance(0.3, 0.01)
@@ -81,11 +82,6 @@ class Elevator:
         
         self.extend(-slowedExtendSpeed)
     
-    # Move elevator and reset target to where you end up.
-    #def move(self, targetSpeed):
-        #self.extend(targetSpeed)
-        #self.targetPosition = self.getEncoderPosition()
-    
     def resetEncoders(self):
         self.leftEncoder.setPosition(0)
         self.rightEncoder.setPosition(0)
@@ -93,7 +89,14 @@ class Elevator:
 
     def getEncoderPosition(self):
         return self.rightEncoder.getPosition()
-        #return 16
     
+    def intake(self, speed):
+        print("intake")
+        self.leftMotor.set(speed)
+
+    def eject(self, speed):
+        print("eject")
+        self.leftMotor.set(speed)
+
      #def log(self, *dataToLog):
         #self.logger.log(DASH_PREFIX, dataToLog)

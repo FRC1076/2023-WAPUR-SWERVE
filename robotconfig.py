@@ -38,6 +38,7 @@ TICKS_PER_INCH = 2
 elevatorConfig = {
     "LEFT_MOTOR_ID": 5,
     "RIGHT_MOTOR_ID": 6,
+    "GRABBER_MOTOR_ID": 7,
     "SHELF_HEIGHT_A": 4/TICKS_PER_INCH, # Lowest shelf, each tick is 2 inches
     "SHELF_HEIGHT_B": 18/TICKS_PER_INCH,
     "SHELF_HEIGHT_C": 32/TICKS_PER_INCH,
