@@ -92,11 +92,11 @@ class Elevator:
     
     def intake(self, speed):
         print("intake")
-        self.leftMotor.set(speed)
+        self.grabberMotor.set(speed)
 
     def eject(self, speed):
         print("eject")
-        self.leftMotor.set(speed)
+        self.grabberMotor.set(speed)
 
      #def log(self, *dataToLog):
         #self.logger.log(DASH_PREFIX, dataToLog)
